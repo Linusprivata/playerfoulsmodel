@@ -7,13 +7,13 @@ CREATE TABLE IF NOT EXISTS player_match_stats (
     player_name VARCHAR,
     match_id VARCHAR,
     
-    -- FBref columns (28)
+    -- FBref columns (35 total - 28 original + 7 new)
     date DATE,
     competition VARCHAR,
     venue VARCHAR,
     result VARCHAR,
     opponent VARCHAR,
-    starting BOOLEAN,
+    starting BOOLEAN,  -- NEW: Whether player started
     position VARCHAR,
     minutes INTEGER,
     fouls INTEGER,
@@ -24,10 +24,10 @@ CREATE TABLE IF NOT EXISTS player_match_stats (
     tackles_att_3rd INTEGER,
     challenges INTEGER,
     take_ons INTEGER,
-    team_fouls INTEGER,
-    team_fouled INTEGER,
-    team_possession_pct FLOAT,
-    opponent_possession_pct FLOAT,
+    team_fouls INTEGER,  -- NEW: Total fouls by player's team
+    team_fouled INTEGER,  -- NEW: Total times player's team was fouled
+    team_possession_pct FLOAT,  -- NEW: Team's possession percentage
+    opponent_possession_pct FLOAT,  -- NEW: Opponent's possession percentage
     
     -- Sofascore columns (4)
     odds_winning FLOAT,
@@ -46,8 +46,8 @@ CREATE TABLE IF NOT EXISTS player_match_stats (
     
     -- Metadata
     referee_id VARCHAR,
-    referee_name VARCHAR,
-    attendance INTEGER,
+    referee_name VARCHAR,  -- NEW: Match referee name
+    attendance INTEGER,  -- NEW: Match attendance
     comments TEXT,
     scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     

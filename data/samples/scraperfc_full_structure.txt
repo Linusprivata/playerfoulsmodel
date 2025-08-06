@@ -1,0 +1,87 @@
+============================================================
+FULL SCRAPERFC DATA STRUCTURE
+============================================================
+
+
+Column: Link
+----------------------------------------
+Type: <class 'str'>
+Value: https://fbref.com/en/matches/b9e00aac/Chelsea-Nottingham-Forest-October-6-2024-Premier-League
+
+Column: Date
+----------------------------------------
+Type: <class 'str'>
+Value: Sunday October 6, 2024
+
+Column: Stage
+----------------------------------------
+Type: <class 'str'>
+Value: Premier League (Matchweek 7)
+
+Column: Home Team
+----------------------------------------
+Type: <class 'str'>
+Value: Chelsea
+
+Column: Away Team
+----------------------------------------
+Type: <class 'str'>
+Value: Nottingham Forest
+
+Column: Home Team ID
+----------------------------------------
+Type: <class 'str'>
+Value: cff3d9bb
+
+Column: Away Team ID
+----------------------------------------
+Type: <class 'str'>
+Value: e4a775cb
+
+Column: Home Goals
+----------------------------------------
+Type: <class 'str'>
+Value: 1
+
+Column: Away Goals
+----------------------------------------
+Type: <class 'str'>
+Value: 1
+
+Column: Home Player Stats
+----------------------------------------
+Type: <class 'pandas.core.series.Series'>
+Series length: 7
+Index: ['Summary', 'Passing', 'Passing types', 'Defense', 'Possession', 'Misc', 'Keeper']
+Content:
+  Summary: <class 'pandas.core.frame.DataFrame'> - shape (17, 31)
+  Passing: <class 'pandas.core.frame.DataFrame'> - shape (17, 28)
+  Passing types: <class 'pandas.core.frame.DataFrame'> - shape (17, 21)
+  Defense: <class 'pandas.core.frame.DataFrame'> - shape (17, 22)
+  Possession: <class 'pandas.core.frame.DataFrame'> - shape (17, 28)
+  Misc: <class 'pandas.core.frame.DataFrame'> - shape (17, 22)
+  Keeper: <class 'pandas.core.frame.DataFrame'> - shape (1, 24)
+
+Column: Away Player Stats
+----------------------------------------
+Type: <class 'pandas.core.series.Series'>
+Series length: 7
+Index: ['Summary', 'Passing', 'Passing types', 'Defense', 'Possession', 'Misc', 'Keeper']
+Content:
+  Summary: <class 'pandas.core.frame.DataFrame'> - shape (17, 31)
+  Passing: <class 'pandas.core.frame.DataFrame'> - shape (17, 28)
+  Passing types: <class 'pandas.core.frame.DataFrame'> - shape (17, 21)
+  Defense: <class 'pandas.core.frame.DataFrame'> - shape (17, 22)
+  Possession: <class 'pandas.core.frame.DataFrame'> - shape (17, 28)
+  Misc: <class 'pandas.core.frame.DataFrame'> - shape (17, 22)
+  Keeper: <class 'pandas.core.frame.DataFrame'> - shape (1, 24)
+
+Column: Shots
+----------------------------------------
+Type: <class 'pandas.core.series.Series'>
+Series length: 3
+Index: ['Both', 'Home', 'Away']
+Content:
+  Both: <class 'pandas.core.frame.DataFrame'> - shape (39, 13)
+  Home: <class 'pandas.core.frame.DataFrame'> - shape (23, 13)
+  Away: <class 'pandas.core.frame.DataFrame'> - shape (17, 13)

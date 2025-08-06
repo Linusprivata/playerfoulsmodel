@@ -83,8 +83,9 @@ def save_sample_to_db(data: dict):
                 INSERT INTO player_match_stats (
                     player_name, match_url, date, competition, venue,
                     starting, position, minutes, fouls, fouled,
-                    scraped_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    team_fouls, team_fouled, team_possession_pct, opponent_possession_pct,
+                    referee_name, attendance, scraped_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 data.get('player_name'),
                 data.get('match_url'),
@@ -96,6 +97,12 @@ def save_sample_to_db(data: dict):
                 data.get('minutes'),
                 data.get('fouls'),
                 data.get('fouled'),
+                data.get('team_fouls'),
+                data.get('team_fouled'),
+                data.get('team_possession_pct'),
+                data.get('opponent_possession_pct'),
+                data.get('referee_name'),
+                data.get('attendance'),
                 data.get('scraped_at')
             ))
             

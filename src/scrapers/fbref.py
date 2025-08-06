@@ -4,6 +4,9 @@ from typing import Dict, Any, Optional, List
 from datetime import datetime
 import pandas as pd
 from loguru import logger
+import requests
+from bs4 import BeautifulSoup
+import re
 
 try:
     from ScraperFC import FBref as ScraperFCFBref
@@ -44,6 +47,14 @@ class FBrefScraper(BaseScraper):
             # Extract player-specific data
             if player_name:
                 player_data = self._extract_player_data(match_data, player_name, match_url)
+                
+                # TODO: The following fields need to be obtained from other sources:
+                # - starting (whether player started)
+                # - team_fouls, team_fouled
+                # - team_possession_pct, opponent_possession_pct  
+                # - referee_name, attendance
+                # These are not available via ScraperFC and direct HTML scraping is blocked
+                
                 return player_data
             else:
                 # Return raw match data if no player specified
@@ -172,53 +183,53 @@ class FBrefScraper(BaseScraper):
             mappings = {
                 ("Unnamed: 5_level_0", "Min"): "minutes",
                 ("Unnamed: 3_level_0", "Pos"): "position",
-                ("Performance", "Gls"): "goals",
-                ("Performance", "Ast"): "assists",
-                ("Performance", "Sh"): "shots",
-                ("Performance", "SoT"): "shots_on_target",
+                #("Performance", "Gls"): "goals",
+                #("Performance", "Ast"): "assists",
+                #("Performance", "Sh"): "shots",
+                #("Performance", "SoT"): "shots_on_target",
                 ("Performance", "CrdY"): "yellow_cards",
                 ("Performance", "CrdR"): "red_cards",
-                ("Performance", "Touches"): "touches",
+                #("Performance", "Touches"): "touches",
                 ("Performance", "Tkl"): "tackles",
-                ("Performance", "Int"): "interceptions",
-                ("Performance", "Blocks"): "blocks",
+                #("Performance", "Int"): "interceptions",
+                #("Performance", "Blocks"): "blocks",
             }
         elif category == "Misc":
             mappings = {
                 ("Performance", "Fls"): "fouls",
                 ("Performance", "Fld"): "fouled",
-                ("Performance", "Off"): "offsides",
-                ("Performance", "Crs"): "crosses",
-                ("Performance", "TklW"): "tackles_won",
-                ("Performance", "PKwon"): "penalties_won",
-                ("Performance", "PKcon"): "penalties_conceded",
-                ("Performance", "Recov"): "recoveries",
-                ("Aerial Duels", "Won"): "aerial_duels_won",
-                ("Aerial Duels", "Lost"): "aerial_duels_lost",
+                #("Performance", "Off"): "offsides",
+                #("Performance", "Crs"): "crosses",
+                #("Performance", "TklW"): "tackles_won",
+                #("Performance", "PKwon"): "penalties_won",
+                #("Performance", "PKcon"): "penalties_conceded",
+                #("Performance", "Recov"): "recoveries",
+                #("Aerial Duels", "Won"): "aerial_duels_won",
+                #("Aerial Duels", "Lost"): "aerial_duels_lost",
             }
         elif category == "Defense":
             mappings = {
                 ("Tackles", "Tkl"): "tackles_total",
-                ("Tackles", "TklW"): "tackles_won_def",
+                #("Tackles", "TklW"): "tackles_won_def",
                 ("Tackles", "Def 3rd"): "tackles_def_3rd",
                 ("Tackles", "Mid 3rd"): "tackles_mid_3rd",
                 ("Tackles", "Att 3rd"): "tackles_att_3rd",
                 ("Challenges", "Att"): "challenges_attempted",
-                ("Challenges", "Tkl%"): "tackle_success_pct",
-                ("Challenges", "Lost"): "challenges_lost",
+                #("Challenges", "Tkl%"): "tackle_success_pct",
+                #("Challenges", "Lost"): "challenges_lost",
             }
         elif category == "Possession":
             mappings = {
-                ("Touches", "Touches"): "touches_total",
-                ("Touches", "Def Pen"): "touches_def_pen",
-                ("Touches", "Def 3rd"): "touches_def_3rd",
-                ("Touches", "Mid 3rd"): "touches_mid_3rd",
-                ("Touches", "Att 3rd"): "touches_att_3rd",
-                ("Touches", "Att Pen"): "touches_att_pen",
+                #("Touches", "Touches"): "touches_total",
+                #("Touches", "Def Pen"): "touches_def_pen",
+                #("Touches", "Def 3rd"): "touches_def_3rd",
+                #("Touches", "Mid 3rd"): "touches_mid_3rd",
+                #("Touches", "Att 3rd"): "touches_att_3rd",
+                #("Touches", "Att Pen"): "touches_att_pen",
                 ("Take-Ons", "Att"): "take_ons_attempted",
                 ("Take-Ons", "Succ"): "take_ons_succeeded",
-                ("Carries", "Carries"): "carries",
-                ("Carries", "PrgC"): "progressive_carries",
+                #("Carries", "Carries"): "carries",
+                #("Carries", "PrgC"): "progressive_carries",
             }
         else:
             # For other categories, use a generic mapping
@@ -308,3 +319,272 @@ class FBrefScraper(BaseScraper):
         except Exception as e:
             logger.error(f"Error getting match links: {e}")
             return []
+    
+    # The following methods are kept for future use if we implement Selenium or find another way
+    # to get the HTML content. Currently FBref blocks direct requests.
+    
+    def _fetch_match_html(self, match_url: str) -> Optional[str]:
+        """Fetch the HTML content of a match page.
+        
+        Args:
+            match_url: FBref match URL
+            
+        Returns:
+            HTML content as string or None if failed
+        """
+        try:
+            # Add delay to avoid rate limiting
+            import time
+            time.sleep(2)
+            
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none',
+                'Sec-Fetch-User': '?1',
+                'Cache-Control': 'max-age=0'
+            }
+            
+            session = requests.Session()
+            response = session.get(match_url, headers=headers, timeout=self.timeout)
+            response.raise_for_status()
+            return response.text
+        except Exception as e:
+            logger.error(f"Error fetching HTML from {match_url}: {e}")
+            return None
+    
+    def _extract_additional_stats(self, html: str, venue: str) -> Dict[str, Any]:
+        """Extract team stats and match info not available in ScraperFC.
+        
+        Args:
+            html: HTML content of the match page
+            venue: "Home" or "Away" to determine which team's stats to use
+            
+        Returns:
+            Dictionary with team stats, referee, attendance
+        """
+        soup = BeautifulSoup(html, 'html.parser')
+        stats = {}
+        
+        # Extract team stats from team_stats_extra div
+        team_stats_extra = soup.find('div', {'id': 'team_stats_extra'})
+        if team_stats_extra:
+            # Extract team fouls
+            fouls_data = self._extract_team_stat(team_stats_extra, 'Fouls')
+            if fouls_data:
+                stats['team_fouls'] = fouls_data[0] if venue == "Home" else fouls_data[1]
+                # Team fouled is the opponent's fouls
+                stats['team_fouled'] = fouls_data[1] if venue == "Home" else fouls_data[0]
+        
+        # Extract possession from team_stats div
+        team_stats = soup.find('div', {'id': 'team_stats'})
+        if team_stats:
+            possession_values = self._extract_possession(team_stats)
+            if possession_values:
+                stats['team_possession_pct'] = possession_values[0] if venue == "Home" else possession_values[1]
+                stats['opponent_possession_pct'] = possession_values[1] if venue == "Home" else possession_values[0]
+        
+        # Extract referee
+        referee = self._extract_referee(soup)
+        if referee:
+            stats['referee_name'] = referee
+        
+        # Extract attendance
+        attendance = self._extract_attendance(soup)
+        if attendance:
+            stats['attendance'] = attendance
+        
+        return stats
+    
+    def _extract_team_stat(self, team_stats_div, stat_name: str) -> Optional[tuple]:
+        """Extract a team statistic from the team_stats_extra div.
+        
+        Args:
+            team_stats_div: BeautifulSoup element containing team stats
+            stat_name: Name of the stat to extract (e.g., "Fouls")
+            
+        Returns:
+            Tuple of (home_value, away_value) or None
+        """
+        try:
+            # Find the div containing the stat name
+            stat_divs = team_stats_div.find_all('div')
+            for i, div in enumerate(stat_divs):
+                if div.text.strip() == stat_name:
+                    # The previous div has home value, next div has away value
+                    home_value = stat_divs[i-1].text.strip() if i > 0 else None
+                    away_value = stat_divs[i+1].text.strip() if i < len(stat_divs)-1 else None
+                    
+                    # Convert to integers if possible
+                    try:
+                        home_value = int(home_value) if home_value else None
+                        away_value = int(away_value) if away_value else None
+                    except ValueError:
+                        pass
+                    
+                    return (home_value, away_value)
+        except Exception as e:
+            logger.warning(f"Error extracting team stat {stat_name}: {e}")
+        
+        return None
+    
+    def _extract_possession(self, team_stats_div) -> Optional[tuple]:
+        """Extract possession percentages from team_stats div.
+        
+        Args:
+            team_stats_div: BeautifulSoup element containing team stats
+            
+        Returns:
+            Tuple of (home_possession, away_possession) as floats
+        """
+        try:
+            # Look for possession section
+            possession_header = team_stats_div.find('th', string='Possession')
+            if possession_header:
+                # Find the row with possession values
+                possession_row = possession_header.find_parent('tr').find_next_sibling('tr')
+                if possession_row:
+                    # Extract percentages from strong tags
+                    strong_tags = possession_row.find_all('strong')
+                    if len(strong_tags) >= 2:
+                        home_pct = strong_tags[0].text.strip().rstrip('%')
+                        away_pct = strong_tags[1].text.strip().rstrip('%')
+                        return (float(home_pct), float(away_pct))
+        except Exception as e:
+            logger.warning(f"Error extracting possession: {e}")
+        
+        return None
+    
+    def _extract_referee(self, soup) -> Optional[str]:
+        """Extract referee name from the match page.
+        
+        Args:
+            soup: BeautifulSoup object of the match page
+            
+        Returns:
+            Referee name or None
+        """
+        try:
+            # Referee is usually in the match information section
+            # Look for "Officials" or "Referee" text
+            referee_element = soup.find(string=re.compile(r'Referee:?\s*', re.I))
+            if referee_element:
+                # The referee name usually follows this text
+                parent = referee_element.parent
+                if parent:
+                    # Extract text after "Referee:"
+                    text = parent.text
+                    match = re.search(r'Referee:?\s*([^,\n]+)', text, re.I)
+                    if match:
+                        return match.group(1).strip()
+                        
+            # Alternative: Look in scorebox_meta div
+            scorebox_meta = soup.find('div', {'class': 'scorebox_meta'})
+            if scorebox_meta:
+                for div in scorebox_meta.find_all('div'):
+                    if 'Referee' in div.text:
+                        # Extract name after "Referee:"
+                        match = re.search(r'Referee:?\s*([^,\n]+)', div.text, re.I)
+                        if match:
+                            return match.group(1).strip()
+        except Exception as e:
+            logger.warning(f"Error extracting referee: {e}")
+        
+        return None
+    
+    def _extract_attendance(self, soup) -> Optional[int]:
+        """Extract attendance from the match page.
+        
+        Args:
+            soup: BeautifulSoup object of the match page
+            
+        Returns:
+            Attendance number or None
+        """
+        try:
+            # Attendance is usually in the match information section
+            attendance_element = soup.find(string=re.compile(r'Attendance:?\s*', re.I))
+            if attendance_element:
+                parent = attendance_element.parent
+                if parent:
+                    text = parent.text
+                    # Extract number after "Attendance:"
+                    match = re.search(r'Attendance:?\s*([\d,]+)', text, re.I)
+                    if match:
+                        # Remove commas and convert to int
+                        attendance_str = match.group(1).replace(',', '')
+                        return int(attendance_str)
+                        
+            # Alternative: Look in scorebox_meta div
+            scorebox_meta = soup.find('div', {'class': 'scorebox_meta'})
+            if scorebox_meta:
+                for div in scorebox_meta.find_all('div'):
+                    if 'Attendance' in div.text:
+                        match = re.search(r'Attendance:?\s*([\d,]+)', div.text, re.I)
+                        if match:
+                            attendance_str = match.group(1).replace(',', '')
+                            return int(attendance_str)
+        except Exception as e:
+            logger.warning(f"Error extracting attendance: {e}")
+        
+        return None
+    
+    def _extract_starting_status(self, html: str, player_name: str) -> bool:
+        """Determine if a player was in the starting lineup.
+        
+        Args:
+            html: HTML content of the match page
+            player_name: Name of the player
+            
+        Returns:
+            True if player started, False otherwise
+        """
+        soup = BeautifulSoup(html, 'html.parser')
+        
+        try:
+            # Find lineup tables
+            # Look for tables containing player links
+            lineup_tables = soup.find_all('table')
+            
+            for table in lineup_tables:
+                # Look for "Bench" header to identify lineup table
+                bench_header = table.find('th', string=re.compile(r'Bench', re.I))
+                if bench_header:
+                    # Get all rows before the bench header
+                    all_rows = table.find_all('tr')
+                    bench_row_index = -1
+                    
+                    for i, row in enumerate(all_rows):
+                        if bench_header in row.find_all('th'):
+                            bench_row_index = i
+                            break
+                    
+                    # Check if player is in starting lineup (before bench)
+                    if bench_row_index > 0:
+                        for i in range(bench_row_index):
+                            row = all_rows[i]
+                            # Check if player name is in this row
+                            if player_name in row.text:
+                                logger.debug(f"Found {player_name} in starting lineup")
+                                return True
+                    
+                    # Check if player is on bench (after bench header)
+                    for i in range(bench_row_index + 1, len(all_rows)):
+                        row = all_rows[i]
+                        if player_name in row.text:
+                            logger.debug(f"Found {player_name} on bench")
+                            return False
+            
+            # If not found in any lineup, log warning
+            logger.warning(f"Could not find {player_name} in lineup tables")
+            
+        except Exception as e:
+            logger.warning(f"Error determining starting status for {player_name}: {e}")
+        
+        return False
